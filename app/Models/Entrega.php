@@ -12,6 +12,7 @@ class Entrega extends Model
       'estudiante_id',
       'fecha_entrega',
       'documento',
+      'entregado',
       'comentario_docente',
       'calificacion',
     ];

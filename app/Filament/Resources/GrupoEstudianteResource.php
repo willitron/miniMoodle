@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\GrupoEstudianteResource\Pages;
 use App\Filament\Resources\GrupoEstudianteResource\RelationManagers;
+use App\Models\Estudiante;
 use App\Models\Grupo_Estudiante;
 use App\Models\GrupoEstudiante;
 use Filament\Forms;
@@ -20,19 +21,45 @@ class GrupoEstudianteResource extends Resource
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
     protected static ?string $navigationLabel = 'Grupo De Estudiantes';
 
+    protected static ?string $navigationGroup = 'Administracion Docentes';
+
+
     public static function form(Form $form): Form
     {
         return $form
             ->schema([
                 Forms\Components\Select::make('grupo_id')
-    ->relationship('grupo', 'nombre')
-    ->required(),
+            ->relationship('grupo', 'nombre')
+            ->required(),
 
-Forms\Components\Select::make('estudiante_id')
-    ->relationship('estudiante', 'nombre')
-    ->required(),
 
-Forms\Components\Toggle::make('es_jefe')->label('¿Es jefe de grupo?'),
+
+    Forms\Components\Select::make('estudiante_id')
+    ->label('Estudiante')
+    ->options(function ($get) {
+        $grupoId = $get('grupo_id');
+
+        if (!$grupoId) {
+            return []; // aún no se ha seleccionado el grupo
+        }
+
+        $asignados = Grupo_Estudiante::where('grupo_id', $grupoId)
+            ->pluck('estudiante_id');
+
+        return Estudiante::whereNotIn('id', $asignados)->pluck('nombre', 'id');
+    })
+    ->searchable()
+    ->required()
+    ->reactive(),
+
+
+
+    Forms\Components\Toggle::make('es_jefe')
+    ->onColor('success')
+    // ->offColor('danger')
+        ->label('¿Es jefe de grupo?'),
+
+
             ]);
     }
 
@@ -40,11 +67,26 @@ Forms\Components\Toggle::make('es_jefe')->label('¿Es jefe de grupo?'),
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('grupo.nombre')->label('Grupo'),
-Tables\Columns\TextColumn::make('estudiante.nombre')->label('Estudiante'),
-Tables\Columns\IconColumn::make('es_jefe')
-    ->boolean()
-    ->label('Jefe de grupo'),
+                Tables\Columns\TextColumn::make('grupo.nombre')
+                ->label('Grupo'),
+
+                Tables\Columns\TextColumn::make('estudiante.nombre')
+                ->label('Estudiante')
+                ->icon('heroicon-s-user'),
+
+                Tables\Columns\TextColumn::make('estudiante.apellido_paterno')
+                ->label('Apellido Paterno'),
+
+                Tables\Columns\TextColumn::make('estudiante.apellido_materno')
+                ->label('Apellido Materno'),
+
+                Tables\Columns\TextColumn::make('estudiante.telefono')
+                ->label('Teléfono')
+                ->icon('heroicon-s-phone'),
+
+                Tables\Columns\IconColumn::make('es_jefe')
+                ->boolean()
+                ->label('Jefe de grupo'),
             ])
             ->filters([
                 //
@@ -58,7 +100,24 @@ Tables\Columns\IconColumn::make('es_jefe')
                 ]),
             ])
             ->recordUrl(null);
+
+
+
     }
+    protected static function booted()
+{
+    static::creating(function ($model) {
+        $exists = self::where('grupo_id', $model->grupo_id)
+            ->where('estudiante_id', $model->estudiante_id)
+            ->exists();
+
+        if ($exists) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'estudiante_id' => 'Este estudiante ya está asignado a este grupo.',
+            ]);
+        }
+    });
+}
 
     public static function getRelations(): array
     {

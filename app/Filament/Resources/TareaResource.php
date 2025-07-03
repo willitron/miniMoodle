@@ -13,11 +13,17 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
+
+
 class TareaResource extends Resource
 {
     protected static ?string $model = Tarea::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-pencil';
+
+
+    protected static ?string $navigationGroup = 'Administracion Docentes';
+
 
     public static function form(Form $form): Form
     {

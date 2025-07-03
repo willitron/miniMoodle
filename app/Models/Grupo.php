@@ -25,4 +25,5 @@ class Grupo extends Model
     {
         return $this->hasMany(Tarea::class);
     }
+
 }

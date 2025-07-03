@@ -17,7 +17,10 @@ class EntregaResource extends Resource
 {
     protected static ?string $model = Entrega::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-calendar';
+
+    protected static ?string $navigationGroup = 'Administracion Estudiantes';
+
 
     public static function form(Form $form): Form
     {
@@ -33,11 +36,17 @@ class EntregaResource extends Resource
 
                 Forms\Components\DateTimePicker::make('fecha_entrega')
                 ->default(now())
-                ->disabled()
+                // ->disabled()
+                ->readonly()
                 ->required(),
 
                 Forms\Components\RichEditor::make('documento')
                 ->required()
+                // ->disabled(fn ($livewire) => $livewire->record?->entregado ?? false)
+                ->columnSpanFull(),
+
+                Forms\Components\Toggle::make('entregado')
+                ->default(false)
                 ->columnSpanFull(),
 
                 Forms\Components\Textarea::make('comentario_docente'),
@@ -50,17 +59,39 @@ class EntregaResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('tarea.titulo')->label('Tarea'),
-                Tables\Columns\TextColumn::make('estudiante.nombre')->label('Estudiante'),
+                Tables\Columns\TextColumn::make('tarea.titulo')
+                ->label('Tarea'),
+
+                Tables\Columns\TextColumn::make('estudiante.nombre')
+                ->icon('heroicon-s-user')
+                ->label('Estudiante'),
+
                 Tables\Columns\TextColumn::make('calificacion'),
+
                 Tables\Columns\TextColumn::make('fecha_entrega')->dateTime(),
             ])
             ->filters([
                 //
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\ViewAction::make(),
+                // Tables\Actions\EditAction::make()
+                // ->disabled(fn ($record) => !empty($record->documento)), // Deshabilitar si ya fue enviado
+                // Tables\Actions\ViewAction::make(),
+
+                Tables\Actions\EditAction::make()
+                ->disabled(fn ($record) => $record->entregado), // Desactiva si ya entregó
+            Tables\Actions\ViewAction::make(),
+
+            Tables\Actions\Action::make('entregar')
+                ->label('Entregar')
+                ->icon('heroicon-o-paper-airplane')
+                ->color('success')
+                ->visible(fn ($record) => !$record->entregado) // Solo muestra si aún no entregó
+                ->requiresConfirmation()
+                ->action(function ($record) {
+                    $record->update(['entregado' => true]);
+                }),
+
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([

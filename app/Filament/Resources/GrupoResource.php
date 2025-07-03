@@ -17,7 +17,9 @@ class GrupoResource extends Resource
 {
     protected static ?string $model = Grupo::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-folder';
+    protected static ?string $navigationGroup = 'Administracion Docentes';
+
 
     public static function form(Form $form): Form
     {

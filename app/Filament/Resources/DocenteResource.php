@@ -18,7 +18,13 @@ class DocenteResource extends Resource
     protected static ?string $model = Docente::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationBadgeTooltip = 'Docentes en Lista';
+    public static function getNavigationBadge(): ?string
+{
+    return static::getModel()::count();
+}
 
+protected static ?string $navigationGroup = 'Administracion Docentes';
 
 
 

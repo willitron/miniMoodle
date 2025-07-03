@@ -17,6 +17,7 @@ return new class extends Migration
             $table->foreignId('estudiante_id')->constrained()->onDelete('cascade');
             $table->dateTime('fecha_entrega');
             $table->longText('documento')->nullable();
+            $table->boolean('entregado')->default(false);
             $table->text('comentario_docente')->nullable();
             $table->decimal('calificacion', 5, 2)->nullable();
             $table->timestamps();
